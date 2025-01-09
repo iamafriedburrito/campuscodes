@@ -1,0 +1,27 @@
+name: Prevent File Deletions
+
+on:
+  pull_request:
+    paths:
+      - '**/*'  # Run this on any changes made to the repository
+
+jobs:
+  check_deletions:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Check for file deletions
+        run: |
+          # Find deleted files in the pull request
+          git diff --name-status ${{ github.event.before }} ${{ github.sha }} | grep -e 'D' > deleted_files.txt
+          
+          if [ -s deleted_files.txt ]; then
+            echo "Error: The following files were deleted in this pull request:"
+            cat deleted_files.txt
+            exit 1
+          else
+            echo "No files deleted. Proceeding with the pull request."
+          fi
