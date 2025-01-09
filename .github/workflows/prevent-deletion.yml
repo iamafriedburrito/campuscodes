@@ -16,4 +16,6 @@ jobs:
       - name: Merge Pull Request if No Issues
         uses: peter-evans/enable-pull-request-automerge@v2
         with:
-          pull-request: ${{ github.event.pull_request.number }}
+          pull-request-number: ${{ github.event.pull_request.number }}  # Correct input
+          token: ${{ secrets.GITHUB_TOKEN }}  # Use the default GITHUB_TOKEN for authentication
+          merge-method: MERGE  # You can specify MERGE, SQUASH, or REBASE
