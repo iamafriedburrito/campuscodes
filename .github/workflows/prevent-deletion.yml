@@ -12,21 +12,29 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-
+      
       - name: Check for file deletions
         id: check_deletions
         run: |
-          # Find deleted files in the pull request
-          git diff --name-status ${{ github.event.before }} ${{ github.sha }} | grep -e 'D' > deleted_files.txt
+          # Get the commit hashes to compare
+          BASE_COMMIT="${{ github.event.before }}"    # The commit before the PR
+          HEAD_COMMIT="${{ github.sha }}"             # The commit of the current PR
+      
+          # Find deleted files between the before and after commits
+          git diff --name-status $BASE_COMMIT $HEAD_COMMIT | grep -e 'D' > deleted_files.txt
           
+          # Check if there were any deleted files
           if [ -s deleted_files.txt ]; then
             echo "Error: The following files were deleted in this pull request:"
             cat deleted_files.txt
             echo "has_deleted_files=true" >> $GITHUB_ENV
+            exit 1  # Exit with error if files are deleted
           else
             echo "No files deleted. Proceeding with the pull request."
             echo "has_deleted_files=false" >> $GITHUB_ENV
+            exit 0  # Ensure we exit with success if no files were deleted
           fi
+
 
       - name: Check for unexpected files in the root directory
         id: check_root_files
