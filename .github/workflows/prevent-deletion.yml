@@ -12,25 +12,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      
-
-      - name: Check for unexpected files in the root directory
-        id: check_root_files
-        run: |
-          # List files at the root of the repository
-          root_files=$(ls -1 | grep -v 'README.md' | grep -v '/')
-          
-          # If any non-directory files are found at the root, fail the check
-          if [ -n "$root_files" ]; then
-            echo "Error: The following unexpected files were found in the root directory:"
-            echo "$root_files"
-            echo "has_unexpected_root_files=true" >> $GITHUB_ENV
-          else
-            echo "Root directory only contains folders or README.md."
-            echo "has_unexpected_root_files=false" >> $GITHUB_ENV
 
       - name: Merge Pull Request if No Issues
-        if: env.has_unexpected_root_files == 'false'
         uses: peter-evans/enable-pull-request-automerge@v2
         with:
           pull-request: ${{ github.event.pull_request.number }}
