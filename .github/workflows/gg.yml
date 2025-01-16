@@ -16,4 +16,4 @@ jobs:
           gh pr merge ${{ github.event.pull_request.number }} --merge
 
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUBTOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUBTOKEN }}
