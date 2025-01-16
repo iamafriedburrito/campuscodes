@@ -1,45 +1,31 @@
-name: Auto-Merge Add-Only Pull Requests
-
+name: automerge
 on:
   pull_request:
     types:
-      - opened
+      - labeled
+      - unlabeled
       - synchronize
-
+      - opened
+      - edited
+      - ready_for_review
+      - reopened
+      - unlocked
+  pull_request_review:
+    types:
+      - submitted
+  check_suite:
+    types:
+      - completed
+  status: {}
 jobs:
-  check-and-merge:
+  automerge:
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
-    # Step 1: Checkout the repository
-    - name: Checkout code
-      uses: actions/checkout@v3
-
-    # Step 2: Check for file changes
-    - name: Ensure only new files are added
-      id: check_files
-      run: |
-        # Get the list of modified files
-        CHANGED_FILES=$(git diff --name-status origin/main...HEAD)
-
-        # Check for added files only
-        if echo "$CHANGED_FILES" | grep -q -v "^A"; then
-          echo "PR contains modified or deleted files. Failing."
-          exit 1
-        fi
-
-        echo "All changes are additions only."
-        echo "CHANGED_FILES=$CHANGED_FILES" >> $GITHUB_ENV
-
-    # Step 3: Auto-merge if there are no merge conflicts
-    - name: Merge Pull Request
-      if: success() && github.event.pull_request.mergeable == true
-      uses: actions/github-script@v6
-      with:
-        script: |
-          github.pulls.merge({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            pull_number: context.payload.pull_request.number,
-            merge_method: "squash"
-          })
+      - id: automerge
+        name: automerge
+        uses: "pascalgn/automerge-action@v0.16.4"
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
