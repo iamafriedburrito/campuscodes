@@ -1,19 +1,45 @@
-name: Auto Merge PRs
+name: Auto-Merge Add-Only Pull Requests
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types:
+      - opened
+      - synchronize
 
 jobs:
-  auto-merge:
+  check-and-merge:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+    # Step 1: Checkout the repository
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-      - name: Merge PR
-        run: |
-          gh pr merge ${{ github.event.pull_request.number }} --merge
+    # Step 2: Check for file changes
+    - name: Ensure only new files are added
+      id: check_files
+      run: |
+        # Get the list of modified files
+        CHANGED_FILES=$(git diff --name-status origin/main...HEAD)
 
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # Check for added files only
+        if echo "$CHANGED_FILES" | grep -q -v "^A"; then
+          echo "PR contains modified or deleted files. Failing."
+          exit 1
+        fi
+
+        echo "All changes are additions only."
+        echo "CHANGED_FILES=$CHANGED_FILES" >> $GITHUB_ENV
+
+    # Step 3: Auto-merge if there are no merge conflicts
+    - name: Merge Pull Request
+      if: success() && github.event.pull_request.mergeable == true
+      uses: actions/github-script@v6
+      with:
+        script: |
+          github.pulls.merge({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            pull_number: context.payload.pull_request.number,
+            merge_method: "squash"
+          })
