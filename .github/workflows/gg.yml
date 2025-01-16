@@ -13,11 +13,7 @@ jobs:
 
       - name: Merge PR
         run: |
-          if [ "${{ github.event.pull_request.mergeable }}" == "true" ]; then
-            echo "Merging PR #${{ github.event.pull_request.number }}"
-            gh pr merge ${{ github.event.pull_request.number }} --merge
-          else
-            echo "PR #${{ github.event.pull_request.number }} is not mergeable."
-          fi
+          gh pr merge ${{ github.event.pull_request.number }} --merge
+
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUBTOKEN }}
