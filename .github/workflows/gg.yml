@@ -20,4 +20,4 @@ jobs:
             echo "PR #${{ github.event.pull_request.number }} is not mergeable."
           fi
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUBTOKEN }}
