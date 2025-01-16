@@ -1,19 +1,23 @@
-name: CI
+name: Auto Merge PRs
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - '/*'  # This triggers the workflow for any file in the root directory
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 jobs:
-  build:
+  auto-merge:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Get Your Code
+      - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Say Hello to the World
-        run: echo "Hello, World!"
+      - name: Merge PR
+        run: |
+          if [ "${{ github.event.pull_request.mergeable }}" == "true" ]; then
+            echo "Merging PR #${{ github.event.pull_request.number }}"
+            gh pr merge ${{ github.event.pull_request.number }} --merge
+          else
+            echo "PR #${{ github.event.pull_request.number }} is not mergeable."
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
